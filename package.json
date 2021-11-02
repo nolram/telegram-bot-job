@@ -1,0 +1,9 @@
+{
+  "name": "job_southon_bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "serverless-python-requirements": "^5.1.1"
+  }
+}

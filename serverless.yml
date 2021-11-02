@@ -1,0 +1,56 @@
+service: bot-telegram-job-southon
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: python3.8
+  lambdaHashingVersion: '20201221'
+  profile: marlon
+
+  httpApi:
+    id: ${cf:southon-infra-${opt:stage, "dev"}.HttpApiId}
+
+  environment:
+    TELEGRAM_TOKEN: ${file(./serverless.env.yml):TELEGRAM_TOKEN, ''}
+    WEBHOOK_TOKEN: '${self:custom.WEBHOOK_TOKEN}'
+
+custom:
+  WEBHOOK_TOKEN: ${file(./serverless.env.yml):WEBHOOK_TOKEN, ''}
+  pythonRequirements:
+    dockerizePip: non-linux
+    slim: true
+    layer: true
+    fileName: requirements.txt
+
+functions:
+  webhook:
+    handler: src.handler.webhook
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    events:
+      - httpApi:
+          path: /${self:custom.WEBHOOK_TOKEN}
+          method: post
+
+  set_webhook:
+    handler: src.handler.set_webhook
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    events:
+      - httpApi:
+          path: /set_webhook
+          method: post
+
+plugins:
+  - serverless-python-requirements
+
+
+package:
+  individually: true
+  exclude:
+    - 'node_modules/**'
+    - 'venv/**'
+    - 'layers/**'
+    - '**.ipynb'
+    - '**.pdf'
+    - '**.zip'
