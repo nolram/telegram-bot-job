@@ -1,9 +1,10 @@
 import json
-import telegram
 import os
 import logging
 
-
+from telegram import Bot, Update, ForceReply
+from telegram.ext import Dispatcher, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.error import TelegramError
 
 # Logging is cool!
 logger = logging.getLogger()
@@ -23,7 +24,28 @@ ERROR_RESPONSE = {
 }
 
 
-def configure_telegram():
+# Define a few command handlers. These usually take the two arguments update and
+# context.
+def start(update: Update, context: CallbackContext) -> None:
+    """Send a message when the command /start is issued."""
+    user = update.effective_user
+    update.message.reply_markdown_v2(
+        fr'Hi {user.mention_markdown_v2()}\!',
+        reply_markup=ForceReply(selective=True),
+    )
+
+
+def help_command(update: Update, context: CallbackContext) -> None:
+    """Send a message when the command /help is issued."""
+    update.message.reply_text('Help!')
+
+
+def echo(update: Update, context: CallbackContext) -> None:
+    """Echo the user message."""
+    update.message.reply_text(update.message.text)
+
+
+def get_bot() -> Bot:
     """
     Configures the bot with a Telegram Token.
     Returns a bot instance.
@@ -33,8 +55,24 @@ def configure_telegram():
     if not TELEGRAM_TOKEN:
         logger.error('The TELEGRAM_TOKEN must be set')
         raise NotImplementedError
+    return Bot(token=TELEGRAM_TOKEN)
 
-    return telegram.Bot(TELEGRAM_TOKEN)
+def get_dispatcher(bot: Bot) -> Dispatcher:
+    """
+    Configures the bot with a Telegram Token.
+    Returns a bot instance.
+    """
+
+    dispatcher = Dispatcher(bot, None, workers=0)
+
+    # on different commands - answer in Telegram
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("help", help_command))
+
+    # on non command i.e message - echo the message on Telegram
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    
+    return dispatcher
 
 
 def webhook(event, context):
@@ -42,29 +80,16 @@ def webhook(event, context):
         Runs the Telegram webhook.
     """
 
-    bot = configure_telegram()
+    bot = get_bot()
+    dispatcher = get_dispatcher(bot)
+
     logger.info('Event: {}'.format(event))
 
     if event.get('body'): 
         logger.info('Message received')
-        update = telegram.Update.de_json(json.loads(event.get('body')), bot)
-        chat_id = update.message.chat.id
-        text = update.message.text
-
-        if text == '/start':
-            text = """Hello, human! I am an echo bot, built with Python and the Serverless Framework.
-            You can take a look at my source code here: https://github.com/jonatasbaldin/serverless-telegram-bot.
-            If you have any issues, please drop a tweet to my creator: https://twitter.com/jonatsbaldin. Happy botting!"""
-
-        try:
-            bot.send_message(chat_id=chat_id, text=text)
-            logger.info('Message sent')
-        except telegram.error.TelegramError as e:
-            logger.error('Telegram error: {}'.format(e))
-            return ERROR_RESPONSE
-
+        update = Update.de_json(json.loads(event.get('body')), bot)
+        dispatcher.process_update(update)
         return OK_RESPONSE
-
     return ERROR_RESPONSE
 
 
@@ -74,7 +99,7 @@ def set_webhook(event, context):
     """
 
     logger.info('Event: {}'.format(event))
-    bot = configure_telegram()
+    bot = get_bot()
     url = 'https://{}/{}'.format(
         event.get('headers').get('host'),
         os.environ.get('WEBHOOK_TOKEN')
