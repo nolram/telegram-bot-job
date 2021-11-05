@@ -1,0 +1,6 @@
+import os
+
+
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN', '2066462883:AAHhFptZs-IkIBl8UO6-X9uwKMRVlU1_pr8')
+WEBHOOK_TOKEN = os.environ.get('WEBHOOK_TOKEN')
+DYNAMO_TABLE = os.environ.get('DYNAMO_TABLE')

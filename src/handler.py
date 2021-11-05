@@ -1,10 +1,11 @@
 import json
-import os
 import logging
+import config
 
-from telegram import Bot, Update, ForceReply
-from telegram.ext import Dispatcher, CommandHandler, MessageHandler, Filters, CallbackContext
-from telegram.error import TelegramError
+from telegram import Bot, Update
+from telegram.ext import Dispatcher, CommandHandler, MessageHandler, Filters
+
+from bot.commands import echo, help_command, start
 
 # Logging is cool!
 logger = logging.getLogger()
@@ -23,35 +24,13 @@ ERROR_RESPONSE = {
     'body': json.dumps('Oops, something went wrong!')
 }
 
-
-# Define a few command handlers. These usually take the two arguments update and
-# context.
-def start(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /start is issued."""
-    user = update.effective_user
-    update.message.reply_markdown_v2(
-        fr'Hi {user.mention_markdown_v2()}\!',
-        reply_markup=ForceReply(selective=True),
-    )
-
-
-def help_command(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
-
-
-def echo(update: Update, context: CallbackContext) -> None:
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
-
-
 def get_bot() -> Bot:
     """
-    Configures the bot with a Telegram Token.
-    Returns a bot instance.
+        Configures the bot with a Telegram Token.
+        Returns a bot instance.
     """
 
-    TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
+    TELEGRAM_TOKEN = config.TELEGRAM_TOKEN
     if not TELEGRAM_TOKEN:
         logger.error('The TELEGRAM_TOKEN must be set')
         raise NotImplementedError
@@ -102,7 +81,7 @@ def set_webhook(event, context):
     bot = get_bot()
     url = 'https://{}/{}'.format(
         event.get('headers').get('host'),
-        os.environ.get('WEBHOOK_TOKEN')
+        config.WEBHOOK_TOKEN
     )
     webhook = bot.set_webhook(url)
 
