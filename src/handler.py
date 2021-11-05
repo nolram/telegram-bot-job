@@ -1,11 +1,12 @@
 import json
 import logging
-import config
+
 
 from telegram import Bot, Update
-from telegram.ext import Dispatcher, CommandHandler, MessageHandler, Filters
+from telegram.ext import Dispatcher
 
-from bot.commands import echo, help_command, start
+from .bot.commands import prepare_handler
+from .utils import config
 
 # Logging is cool!
 logger = logging.getLogger()
@@ -43,14 +44,8 @@ def get_dispatcher(bot: Bot) -> Dispatcher:
     """
 
     dispatcher = Dispatcher(bot, None, workers=0)
+    dispatcher.add_handler(prepare_handler())
 
-    # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
-
-    # on non command i.e message - echo the message on Telegram
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
-    
     return dispatcher
 
 
@@ -64,8 +59,7 @@ def webhook(event, context):
 
     logger.info('Event: {}'.format(event))
 
-    if event.get('body'): 
-        logger.info('Message received')
+    if event.get('body'):
         update = Update.de_json(json.loads(event.get('body')), bot)
         dispatcher.process_update(update)
         return OK_RESPONSE

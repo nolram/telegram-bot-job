@@ -1,11 +1,12 @@
 import logging
-import config
+
+from .utils import config
 
 from telegram import Bot
 
 from telegram.ext import Updater
 
-from bot.commands import prepare_handler
+from .bot.commands import prepare_handler
 
 # Enable logging
 logging.basicConfig(

@@ -1,5 +1,5 @@
 
-from typing import Tuple, Dict, Any
+from typing import Dict, Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
