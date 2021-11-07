@@ -13,9 +13,38 @@ provider:
   environment:
     TELEGRAM_TOKEN: ${file(./serverless.env.yml):TELEGRAM_TOKEN, ''}
     WEBHOOK_TOKEN: '${self:custom.WEBHOOK_TOKEN}'
+    DYNAMO_HOST: 'https://dynamodb.${opt:region, self:provider.region}.amazonaws.com'
+    DYNAMO_TABLE_HISTORY_CHAT: "${self:custom.tableName}"
+    DYNAMO_TABLE_USER: "${self:custom.tableNameUser}"
+  
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchWriteItem
+            - dynamodb:DescribeTable
+          Resource: 
+            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:custom.tableName}"
+            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:custom.tableNameUser}"
+        - Effect: "Allow"
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource: 
+            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:custom.tableName}/index/*"
+            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:custom.tableNameUser}/index/*"
 
 custom:
   WEBHOOK_TOKEN: ${file(./serverless.env.yml):WEBHOOK_TOKEN, ''}
+  tableName: southon-bot-data-table-${opt:stage, 'dev'}
+  tableNameUser: southon-bot-user-table-${opt:stage, 'dev'}
   pythonRequirements:
     dockerizePip: non-linux
     slim: true
@@ -25,6 +54,7 @@ custom:
 functions:
   webhook:
     handler: src.handler.webhook
+    timeout: 28
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     events:

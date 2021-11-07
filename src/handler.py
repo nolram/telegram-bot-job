@@ -3,17 +3,14 @@ import logging
 
 
 from telegram import Bot, Update
-from telegram.ext import Dispatcher
+from telegram.ext import Dispatcher, handler
 
-from .bot.commands import prepare_handler
+from .bot.chat import prepare_handler
 from .utils import config
 
 # Logging is cool!
 logger = logging.getLogger()
-if logger.handlers:
-    for handler in logger.handlers:
-        logger.removeHandler(handler)
-logging.basicConfig(level=logging.INFO)
+logger.setLevel(logging.INFO)
 
 OK_RESPONSE = {
     'statusCode': 200,
@@ -37,14 +34,18 @@ def get_bot() -> Bot:
         raise NotImplementedError
     return Bot(token=TELEGRAM_TOKEN)
 
-def get_dispatcher(bot: Bot) -> Dispatcher:
+def get_dispatcher(bot: Bot, update: Update) -> Dispatcher:
     """
     Configures the bot with a Telegram Token.
     Returns a bot instance.
     """
 
-    dispatcher = Dispatcher(bot, None, workers=0)
-    dispatcher.add_handler(prepare_handler())
+    dispatcher = Dispatcher(bot=bot, update_queue=None, workers=0)
+
+    handlers = prepare_handler(update=update)
+    for i in handlers:
+        logger.info('Handler: {}'.format(i))
+        dispatcher.add_handler(i)
 
     return dispatcher
 
@@ -54,14 +55,17 @@ def webhook(event, context):
         Runs the Telegram webhook.
     """
 
-    bot = get_bot()
-    dispatcher = get_dispatcher(bot)
-
     logger.info('Event: {}'.format(event))
 
     if event.get('body'):
+        bot = get_bot()
+        logger.info('Bot: {}'.format(bot))
         update = Update.de_json(json.loads(event.get('body')), bot)
+        dispatcher = get_dispatcher(bot, update)
+        logger.info('Dispatcher: {}'.format(dispatcher))
+        logger.info('Update: {}'.format(update))
         dispatcher.process_update(update)
+
         return OK_RESPONSE
     return ERROR_RESPONSE
 

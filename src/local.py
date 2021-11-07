@@ -1,12 +1,14 @@
 import logging
 
-from .utils import config
-
 from telegram import Bot
 
 from telegram.ext import Updater
 
-from .bot.commands import prepare_handler
+from bot.chat import prepare_handler
+
+from models.dynamodb.user import HistoryChatModel
+
+from utils import config
 
 # Enable logging
 logging.basicConfig(
@@ -16,13 +18,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def create_table() -> None:
+    """
+    Create the database table.
+    """
+    HistoryChatModel.create_table(read_capacity_units=1, write_capacity_units=1)
+
 def delete_webhook() -> None:
     """
     Delete the Telegram bot webhook.
     """
     bot = Bot(token=config.TELEGRAM_TOKEN)
     url = ''
-    webhook = bot.set_webhook(url)
+    bot.set_webhook(url)
 
 
 def main() -> None:
@@ -33,8 +41,10 @@ def main() -> None:
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
 
+    updater.bot.get_updates()
+
     # on different commands - answer in Telegram
-    dispatcher.add_handler(prepare_handler())
+    dispatcher.add_handler(prepare_handler(update=updater.bot.get_updates()))
     # Start the Bot
     updater.start_polling()
 
@@ -45,5 +55,6 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    # delete_webhook()
+    create_table()
+    delete_webhook()
     main()
