@@ -59,7 +59,7 @@ functions:
       - { Ref: PythonRequirementsLambdaLayer }
     events:
       - httpApi:
-          path: /${self:custom.WEBHOOK_TOKEN}
+          path: /bot/${self:custom.WEBHOOK_TOKEN}
           method: post
 
   set_webhook:
@@ -68,7 +68,7 @@ functions:
       - { Ref: PythonRequirementsLambdaLayer }
     events:
       - httpApi:
-          path: /set_webhook
+          path: /bot/set_webhook
           method: post
 
 plugins:

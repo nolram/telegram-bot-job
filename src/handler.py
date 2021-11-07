@@ -77,7 +77,7 @@ def set_webhook(event, context):
 
     logger.info('Event: {}'.format(event))
     bot = get_bot()
-    url = 'https://{}/{}'.format(
+    url = 'https://{}/bot/{}'.format(
         event.get('headers').get('host'),
         config.WEBHOOK_TOKEN
     )

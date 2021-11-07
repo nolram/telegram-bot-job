@@ -105,8 +105,8 @@ def start(update: Update, context: CallbackContext) -> None:
     reply_keyboard = [['Sim', 'Não']]
 
     update.message.reply_text(
-        'Olá , eu sou o Jobbot!\n\n'
-        'Você gostaria de fazer um cadastro para ver nossa vagas de emprego?\n\n',
+        'Olá, eu sou o Jobson! Seu amigo na hora de procurar um Job.\n\n'
+        'Você gostaria de fazer um cadastro para ver nossas vagas de emprego?\n\n',
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True, input_field_placeholder='Sim ou Não'
         ),
@@ -145,7 +145,8 @@ def location(update: Update, context: CallbackContext) -> None:
     name = update.message.text
     logger.info("Location of %s: %s", user.first_name, name)
     update.message.reply_text(
-        f'Certo, {name}. Prazer em te conhecer! Agora eu preciso de informações do seu endereço. '
+        f'Certo, {name}. Prazer em te conhecer! \n\n'
+        f'Agora eu preciso de informações do seu endereço. '
         f'Quanto mais específico podemos te ajudar melhor, mas a escolha é sua.'
         f'Digite o número da opção escolhida (1 ou 2) ou escolha a opção do teclado:\n\n'
         f'1 - Cidade e Bairro\n\n'
@@ -201,7 +202,7 @@ def working_model(update: Update, context: CallbackContext) -> None:
     user = update.message.from_user
     logger.info("Working model of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
-        'Qual o modelo de trabalho que você gostaria de trabalhar?'
+        'Qual o modelo de trabalho que você gostaria de trabalhar?\n\n'
         'Digite o número da opção escolhida (1, 2, 3 ou 4) ou escolha a opção do teclado:\n\n'
         '1- 100% remoto\n\n'
         '2 - misto, parte remoto parte presencial\n\n'
@@ -232,7 +233,7 @@ def interview_model(update: Update, context: CallbackContext) -> None:
         else:
             save_user_data(update, WORKING_MODEL)
             update.message.reply_text(
-                'Qual o modelo de entrevista você gostaria de fazer?'
+                'Qual o modelo de entrevista você gostaria de fazer?\n\n'
                 'Digite o número da opção escolhida (1, 2 ou 3) ou escolha a opção do teclado:\n\n'
                 '1- Presencialmente\n\n'
                 '2 - Online\n\n'
@@ -266,9 +267,10 @@ def job_type(update: Update, context: CallbackContext) -> None:
             save_last_state(INTERVIEW_MODEL, str(update.message.from_user.id))
         else:
             update.message.reply_text(
-                'Ok, para qual vaga você gostaria de se candidatar? Ex: Engenheiro Civil, Pedreiro,'
-                'Auxiliar de administração, Auxiliar de limpeza...'
-                'Separe por vírgula e digite as vagas mais importantes em primeiro lugar',
+                'Ok, para qual vaga você gostaria de se candidatar?\n\n' 
+                'Ex: Engenheiro Civil, Pedreiro, '
+                'Auxiliar de administração, Auxiliar de limpeza...\n\n'
+                'Digite as vagas de seu maior interesse separadas por vírgulas. Digite as mais importantes primeiro.',
                 reply_markup=ReplyKeyboardRemove()
             )
             save_last_state(JOB_SKILLS, str(update.message.from_user.id))
@@ -285,9 +287,9 @@ def job_skills(update: Update, context: CallbackContext) -> None:
     user = update.message.from_user
     logger.info("Job skills of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
-        'Ok, agora preciso saber das tuas habilidades, ' 
+        'Ok, agora preciso saber das tuas habilidades.\n\n' 
         'Digite as habilidades que você se identifica mais. '
-        'Ex: Marcenaria, Cuidado de pacientes, Gestão de pessoas. ',
+        'Ex: Marcenaria, Cuidado de pacientes, Gestão de pessoas... ',
         reply_markup=ReplyKeyboardRemove()
     )
     save_last_state(END_REGISTER, str(update.message.from_user.id))
@@ -298,7 +300,9 @@ def end_register(update: Update, context: CallbackContext) -> None:
     user = update.message.from_user
     logger.info("End register of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
-        'Cadastro realizado com sucesso!',
+        'Cadastro realizado com sucesso! \n\n'
+        'Agora vamos juntar seu perfil com as vagas disponíveis. '
+        'Assim que der match nós vamos te avisar por aqui.',
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -307,7 +311,7 @@ def cancel(update: Update, context: CallbackContext) -> None:
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     update.message.reply_text(
-        'Bye! I hope we can talk again some day.', reply_markup=ReplyKeyboardRemove()
+        'Certo! Até mais! Se quiser falar comigo digite /start', reply_markup=ReplyKeyboardRemove()
     )
 
 def handlers_state() -> Dict:
