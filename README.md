@@ -6,6 +6,8 @@ O Jobson pode ser acessado pelo link: [Jobson](https://t.me/JobSouthBot)
 
 ![Telegram App](./docs/bot-app-1.jpeg "Bot Telegram App")
 
+![Telegram App](./docs/bot-mac-app.png "Bot Telegram App")
+
 
 ## Bibliotecas
 
